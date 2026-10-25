@@ -1,0 +1,242 @@
+/* ==========================================================================
+   自定义样式 —— 在 Butterfly 主题之上加的一层轻薄修饰
+
+   写法约定：
+     1. 颜色统一收敛到 :root 的 --yz-* 变量，换主色只改一处；
+     2. 选择器带上 #recent-posts / #aside-content 等前缀，
+        是为了压过主题内置规则 —— 主题用的是「id + 多个类名」，权重更高，
+        只写单个类名会被主题覆盖，等于白写；
+     3. 不改任何模板文件，主题升级不受影响。
+   ========================================================================== */
+
+:root {
+  --yz-accent: #1a73c6;
+  --yz-accent-shadow: rgba(26, 115, 198, 0.28);
+  --yz-accent-tint: rgba(26, 115, 198, 0.09);
+  --yz-accent-line: rgba(26, 115, 198, 0.3);
+  --yz-text-muted: #7b8794;
+  --yz-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* --------------------------------------------------------------------------
+   一、正文链接：hover 时一条从左向右生长的下划线
+   -------------------------------------------------------------------------- */
+
+#article-container a:not(.headerlink):not(.fancybox) {
+  background-image: linear-gradient(var(--yz-accent), var(--yz-accent));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 1px;
+  transition: background-size 0.35s ease;
+}
+
+#article-container a:not(.headerlink):not(.fancybox):hover {
+  background-size: 100% 1px;
+}
+
+/* --------------------------------------------------------------------------
+   二、卡片：更轻的投影 + 更缓的抬升
+   -------------------------------------------------------------------------- */
+
+#recent-posts .recent-post-item,
+#aside-content .card-widget:not(#card-toc) {
+  transition: transform 0.35s var(--yz-ease), box-shadow 0.35s var(--yz-ease);
+}
+
+#recent-posts .recent-post-item:hover,
+#aside-content .card-widget:not(#card-toc):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -10px var(--yz-accent-shadow);
+}
+
+/* --------------------------------------------------------------------------
+   三、头像：一圈柔和的呼吸光
+   主题的 .avatar-img 带 overflow: hidden，伪元素会被裁掉，所以用 box-shadow
+   -------------------------------------------------------------------------- */
+
+#aside-content .card-info .avatar-img {
+  animation: avatar-breathe 4s ease-in-out infinite;
+}
+
+@keyframes avatar-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--yz-accent-shadow);
+  }
+
+  50% {
+    box-shadow: 0 0 0 7px rgba(26, 115, 198, 0.08);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   四、导航栏：毛玻璃底
+   -------------------------------------------------------------------------- */
+
+#page-header.fixed #nav {
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+}
+
+/* --------------------------------------------------------------------------
+   五、滚动条：更窄、更圆、跟主题同色
+   -------------------------------------------------------------------------- */
+
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: rgba(26, 115, 198, 0.55);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 115, 198, 0.85);
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   六、代码块：略大一点的圆角 + 更柔的分隔线
+   主题的选择器是 .container figure.highlight，这里必须同样带上 .container
+   -------------------------------------------------------------------------- */
+
+.container figure.highlight {
+  border-radius: 8px;
+}
+
+.container figure.highlight .highlight-tools {
+  border-bottom: 1px solid rgba(127, 127, 127, 0.12);
+}
+
+/* 行内代码不刺眼 */
+#article-container code:not([class*='language-']) {
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: var(--yz-accent-tint);
+  color: var(--yz-accent);
+}
+
+/* --------------------------------------------------------------------------
+   七、正文标题：悬停时小图标轻微右移
+   主题里标题的 :before 是绝对定位（left: 0），靠 padding-left 让位，
+   所以这里只做动效，不加 margin（margin 对绝对定位元素无效）
+   -------------------------------------------------------------------------- */
+
+#article-container.post-content h2::before,
+#article-container.post-content h3::before {
+  transition: transform 0.25s ease;
+}
+
+#article-container.post-content h2:hover::before,
+#article-container.post-content h3:hover::before {
+  transform: translateX(2px);
+}
+
+/* --------------------------------------------------------------------------
+   八、回到顶部按钮
+   -------------------------------------------------------------------------- */
+
+#go-up {
+  transition: transform 0.3s ease;
+}
+
+#go-up:hover {
+  transform: translateY(-3px);
+}
+
+/* --------------------------------------------------------------------------
+   九、深色模式适配
+   -------------------------------------------------------------------------- */
+
+[data-theme='dark'] #article-container code:not([class*='language-']) {
+  background: rgba(26, 115, 198, 0.18);
+  color: #7cbbf5;
+}
+
+[data-theme='dark'] #recent-posts .recent-post-item:hover,
+[data-theme='dark'] #aside-content .card-widget:not(#card-toc):hover {
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.65);
+}
+
+/* --------------------------------------------------------------------------
+   十、移动端：收掉位移和投影，避免糊成一片
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  #recent-posts .recent-post-item:hover,
+  #aside-content .card-widget:not(#card-toc):hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   十一、还没有文章时的空态提示
+   -------------------------------------------------------------------------- */
+
+.recent-post-items:empty::after,
+.category-lists:empty::after {
+  display: block;
+  border: 1px dashed var(--yz-accent-line);
+  border-radius: 12px;
+  background: rgba(26, 115, 198, 0.04);
+  color: var(--yz-text-muted);
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 0.4px;
+  line-height: 1.9;
+}
+
+.recent-post-items:empty::after {
+  content: '还没有文章｜写好第一篇，它就会出现在这里';
+  padding: 64px 24px;
+}
+
+.category-lists:empty::after {
+  content: '还没有分类｜在文章开头的 categories 里写上分类名即可';
+  padding: 48px 20px;
+}
+
+.card-recent-post .aside-list:empty::after {
+  content: '暂无文章';
+  display: block;
+  padding: 12px 0;
+  color: #9aa4af;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+[data-theme='dark'] .recent-post-items:empty::after,
+[data-theme='dark'] .category-lists:empty::after {
+  border-color: rgba(124, 187, 245, 0.28);
+  background: rgba(124, 187, 245, 0.06);
+  color: #8b95a1;
+}
+
+/* --------------------------------------------------------------------------
+   十二、尊重系统「减少动态效果」设置
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  #recent-posts .recent-post-item,
+  #aside-content .card-widget:not(#card-toc),
+  #article-container a:not(.headerlink):not(.fancybox),
+  #go-up {
+    transition: none;
+  }
+
+  #recent-posts .recent-post-item:hover,
+  #aside-content .card-widget:not(#card-toc):hover,
+  #go-up:hover {
+    transform: none;
+  }
+
+  #aside-content .card-info .avatar-img {
+    animation: none;
+  }
+}
