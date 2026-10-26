@@ -72,4 +72,44 @@
         <tag>Cloudflare</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Obsidian 笔记：建立属于自己的知识库</title>
+    <url>/2026/10/26/Obsidian%E7%AC%94%E8%AE%B0-%E5%BB%BA%E7%AB%8B%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BA%93/</url>
+    <content><![CDATA[<p>最近了解到 Obsidian（以下简称 OB）这款软件，发现它非常适合配合 AI 搭建个人知识库。之前我一直用系统自带的笔记本写笔记，但用久了觉得功能太单一，缺乏结构化的知识管理能力，于是决定尝试一下这个新工具。</p>
+<h2 id="一、Obsidian-基础使用：为什么它是知识库神器？"><a href="#一、Obsidian-基础使用：为什么它是知识库神器？" class="headerlink" title="一、Obsidian 基础使用：为什么它是知识库神器？"></a>一、Obsidian 基础使用：为什么它是知识库神器？</h2><p>刚上手 Obsidian，我就被它的几个核心功能惊艳到了：</p>
+<ul>
+<li><strong>本地 Markdown 笔记</strong>：所有笔记都是本地的 <code>.md</code> 文件，不依赖任何云端数据库，数据完全掌握在自己手里。而且 Markdown 格式非常适合普通大模型问答，也极度契合 Agent 自动读写文件的需求。</li>
+<li><strong>双向链接</strong>：这是 Obsidian 的灵魂。通过 <code>[[笔记名]]</code> 就能在笔记之间建立链接，点击即可跳转。随着笔记越来越多，这些链接会自动形成一张「知识关系图谱」，让零散的知识点产生化学反应。</li>
+<li><strong>标签（Tags）</strong>：使用 <code>#标签名</code> 可以快速对笔记进行分类和检索，配合双链使用，管理效率翻倍。</li>
+<li><strong>Canvas 画布</strong>：这是一个无限大的白板，可以把笔记、图片、网页链接随意拖拽、连线，非常适合做头脑风暴或梳理复杂的项目逻辑。</li>
+</ul>
+<p>这些特性让 Obsidian 不仅仅是一个笔记软件，更是一个能伴随你成长的「第二大脑」。</p>
+<h2 id="二、痛点：Obsidian-没有免费官方同步"><a href="#二、痛点：Obsidian-没有免费官方同步" class="headerlink" title="二、痛点：Obsidian 没有免费官方同步"></a>二、痛点：Obsidian 没有免费官方同步</h2><p>Obsidian 的「本地优先」哲学是它的魅力，但同时也带来了一定弊端：它没有免费的官方同步服务。官方提供的 Obsidian Sync 每月需要 5 美元，对于国内用户来说不仅价格偏高，还面临海外服务器延迟的问题。</p>
+<p>为了在多设备间无缝同步，我进行了如下研究。</p>
+<h2 id="三、第一套方案实操：Remotely-Save-坚果云-WebDAV"><a href="#三、第一套方案实操：Remotely-Save-坚果云-WebDAV" class="headerlink" title="三、第一套方案实操：Remotely Save + 坚果云 WebDAV"></a>三、第一套方案实操：Remotely Save + 坚果云 WebDAV</h2><p>在网上搜了一圈，最火的免费方案就是 Remotely Save 插件 + 坚果云 WebDAV。</p>
+<ol>
+<li>登录坚果云网页端，在「账户安全」里生成了一个第三方应用密码。</li>
+<li>在 Obsidian 安装 Remotely Save 插件，填入坚果云的 WebDAV 地址、邮箱和应用密码。</li>
+<li>点击「检查连接」，提示成功，开始同步。</li>
+</ol>
+<p>但是，在实际使用中坚果云频繁报 503 错误，甚至直接限流。后来了解到，坚果云对 WebDAV 的 API 请求频率有严格限制，并不适合做高频的云同步首选。</p>
+<h2 id="四、最终方案：Obsidian-Git-GitHub"><a href="#四、最终方案：Obsidian-Git-GitHub" class="headerlink" title="四、最终方案：Obsidian Git + GitHub"></a>四、最终方案：Obsidian Git + GitHub</h2><p>在 WebDAV 方案受挫后，我想到了以前建立博客时用到的 Git 上传方案。经过一番研究与查阅资料，发现它完全可行，并且体验极佳。</p>
+<h3 id="1-安装插件"><a href="#1-安装插件" class="headerlink" title="1. 安装插件"></a>1. 安装插件</h3><p>在 Obsidian 的第三方插件市场中搜索并安装 Obsidian Git 插件，然后启用。</p>
+<h3 id="2-插件配置"><a href="#2-插件配置" class="headerlink" title="2. 插件配置"></a>2. 插件配置</h3><p>打开插件设置页面，我逐项检查了一遍，最终决定所有参数保持默认不动。事实证明，默认配置已经足够好用，过度自定义反而容易引发各种奇怪的问题。</p>
+<h3 id="3-一键同步"><a href="#3-一键同步" class="headerlink" title="3. 一键同步"></a>3. 一键同步</h3><p>配置完成后，按 <code>Ctrl+P</code> 调出命令面板，输入 <code>Obsidian Git: Commit and sync</code>，回车即可一键完成本地提交并推送到 GitHub 远程仓库。</p>
+<p>经过反复测验，该方案不仅同步稳定，而且完美避开了 WebDAV 的限流痛点，目前已成为我日常使用的主力同步方式。</p>
+<h2 id="五、个人总结：工具为辅，记录为主"><a href="#五、个人总结：工具为辅，记录为主" class="headerlink" title="五、个人总结：工具为辅，记录为主"></a>五、个人总结：工具为辅，记录为主</h2><p>折腾了一圈同步方案，我最大的感触是：Obsidian 和 Git 终究只是辅助工具，真正重要的永远是日常的记录与思考。</p>
+<p>我们很容易陷入「折腾工具」的陷阱：为了找一个完美的同步插件耗费半天，为了美化界面安装几十个主题，或者为了构建一个看似完美的知识图谱而焦虑。但工具再强大，如果里面没有扎实的内容，也只是一个空壳。把省下来的时间用来多写几篇笔记、多记录一些日常的灵感与反思，才是建立个人知识库的真正意义。</p>
+<p>毕竟，笔记的价值不在于它存放在哪里、用什么软件打开，而在于那些文字是否真正沉淀成了你自己的认知。</p>
+]]></content>
+      <categories>
+        <category>技术笔记</category>
+      </categories>
+      <tags>
+        <tag>Obsidian</tag>
+        <tag>Git</tag>
+        <tag>WebDAV</tag>
+        <tag>坚果云</tag>
+      </tags>
+  </entry>
 </search>
