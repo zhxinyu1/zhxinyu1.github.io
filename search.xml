@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>我是怎么搭建这个博客的</title>
+    <url>/2026/10/25/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/</url>
+    <content><![CDATA[<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>想找个地方把平时折腾的东西记下来。</p>
+<p>用别人的平台总觉得不踏实：排版不由自己，哪天平台改版或者关停，写的东西说没就没。所以从一开始就定了两个要求：<strong>内容必须是纯文本存在自己手里</strong>，<strong>网站得是自己的域名</strong>。</p>
+<p>最后选的路子是 Hexo 写、GitHub 存、Cloudflare 发布。</p>
+<h2 id="一、选型"><a href="#一、选型" class="headerlink" title="一、选型"></a>一、选型</h2><p>静态博客生成器不少，Jekyll、Hugo、Hexo 都能干这事。选 Hexo 的原因很朴素：它用 Node.js，我电脑上本来就有；配置文件是 YAML，看得懂；中文资料多，出问题好搜。</p>
+<p>主题选了 <a href="https://butterfly.js.org/">Butterfly</a>，功能齐全，文档写得清楚，配色也好改——我把主色调成了头像上那片蓝。</p>
+<h2 id="二、本地跑起来"><a href="#二、本地跑起来" class="headerlink" title="二、本地跑起来"></a>二、本地跑起来</h2><p>环境只需要 Node.js 和 Git。装完之后開一个目录，执行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br><span class="line">hexo init blog</span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+
+<p>目录结构大致是这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">blog/</span><br><span class="line">├── source/          # 文章和页面，唯一需要经常动的地方</span><br><span class="line">│   ├── _posts/      # 文章 Markdown</span><br><span class="line">│   ├── about/       # 关于页</span><br><span class="line">│   └── img/         # 图片</span><br><span class="line">├── themes/butterfly/# 主题</span><br><span class="line">├── _config.yml      # 站点配置</span><br><span class="line">└── _config.butterfly.yml  # 主题配置</span><br></pre></td></tr></table></figure>
+
+<p><code>hexo server</code> 起本地预览，浏览器打开 <code>http://localhost:4000</code> 就能看到。改文件保存后自动刷新，不用反复重启。</p>
+<h2 id="三、写文章"><a href="#三、写文章" class="headerlink" title="三、写文章"></a>三、写文章</h2><p>一篇文章就是一个 Markdown 文件，丢在 <code>source/_posts/</code> 里，开头一段 YAML 配置：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 文章标题</span><br><span class="line">date: 2026-10-25 11:40:00</span><br><span class="line">categories:</span><br><span class="line"><span class="bullet">  -</span> 技术笔记</span><br><span class="line">tags:</span><br><span class="line"><span class="bullet">  -</span> Hexo</span><br><span class="line"><span class="section">description: 一句话摘要，会显示在首页卡片上。</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<p>这里踩过一个坑：<strong><code>---</code> 必须顶格写在第一行，前后不能有空格，也不能写成 <code>\---</code></strong>。一开始加了反斜杠，结果整段配置被当成正文渲染出来了，页面上直接显示「title: 我的第一篇博客」，标题却变成「无标题」。</p>
+<h2 id="四、推送到-GitHub"><a href="#四、推送到-GitHub" class="headerlink" title="四、推送到 GitHub"></a>四、推送到 GitHub</h2><p>建一个仓库，名字必须是 <code>用户名.github.io</code>，这样才会自动开启 GitHub Pages。然后在 <code>_config.yml</code> 末尾配置部署：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repository:</span> <span class="string">git@github.com:zhxinyu1/zhxinyu1.github.io.git</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span></span><br></pre></td></tr></table></figure>
+
+<p>之后每次发布就三步：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+
+<p><code>hexo d</code> 会临时建一个 <code>.deploy_git</code> 目录，把生成的静态文件塞进去，提交、推送到远端。<strong>它推的是 <code>public/</code> 里的 HTML，不是 Markdown 源码</strong>，所以 <code>.gitignore</code> 里要把 <code>public/</code> 和 <code>.deploy_git/</code> 都排除掉。</p>
+<p>嫌麻烦就写个 <code>push.bat</code>，双击一下完事。</p>
+<h2 id="五、Cloudflare-Pages-接管"><a href="#五、Cloudflare-Pages-接管" class="headerlink" title="五、Cloudflare Pages 接管"></a>五、Cloudflare Pages 接管</h2><p>GitHub Pages 在国内访问时快时慢，而且自带域名不好看。所以把它交给 Cloudflare Pages：</p>
+<ol>
+<li>Cloudflare 控制台 → Workers 和 Pages → 创建 → 连接到 Git</li>
+<li>授权 GitHub，选中 <code>zhxinyu1.github.io</code> 这个仓库</li>
+<li>框架预设选「无」，构建命令留空（因为推上去的已经是成品 HTML）</li>
+<li>部署</li>
+</ol>
+<p>之后每次 <code>hexo d</code> 推上去，Cloudflare 都会监听到新提交，<strong>自动拉取、重新部署</strong>。控制台里会多出一条部署记录，这是正常机制，不是配置被改了。</p>
+<h2 id="六、绑定自己的域名"><a href="#六、绑定自己的域名" class="headerlink" title="六、绑定自己的域名"></a>六、绑定自己的域名</h2><p>找到自己心仪的域名进行绑定。</p>
+<p>在 Cloudflare 的 DNS 里加两条记录，类型都是 CNAME，<strong>全部开启橙色云代理</strong>，TTL 自动：<br>| CNAME | <code>@</code> | <code>zhxinyu1-github-io.pages.dev</code> |<br>| CNAME | <code>www</code> | <code>zhxinyu1-github-io.pages.dev</code> |</p>
+<p>第二条是为了解决访问 <code>www</code> 子域名时跳广告的问题。</p>
+<p>DNS 生效要等 2 到 10 分钟。测试时用无痕窗口加 Ctrl+F5，避开浏览器缓存。</p>
+<h2 id="七、踩过的几个坑"><a href="#七、踩过的几个坑" class="headerlink" title="七、踩过的几个坑"></a>七、踩过的几个坑</h2><p><strong>1. 一篇不写，首页就 404</strong></p>
+<p>Hexo 的首页生成器在 <code>per_page &gt; 0</code> 时，如果文章数为 0，分页循环一次都不跑，首页根本不会生成，访问根路径直接 404。</p>
+<p>解决办法是写一个兜底生成器 <code>scripts/empty-site.js</code>：检测到一篇文章都没有时，用 <code>perPage: 0</code> 补出首页；有文章了就返回空数组，让位给官方生成器，不影响正常分页。</p>
+<p><strong>2. 搜索不工作</strong></p>
+<p><code>hexo-generator-searchdb</code> 生成的搜索索引，<strong>文件名必须以 <code>.xml</code> 结尾</strong>，主题的搜索脚本才按 XML 解析：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">search:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">  <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">  <span class="attr">content:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">format:</span> <span class="string">html</span></span><br></pre></td></tr></table></figure>
+
+<p>写成 <code>.json</code> 或者别的名字，搜索框就是永远转圈圈。</p>
+<p><strong>3. 更新了看不到新内容</strong></p>
+<p>先排浏览器缓存（无痕窗口 + Ctrl+F5），再排 Cloudflare 的 CDN 缓存（控制台 → 缓存 → 清除缓存）。九成情况是前者。</p>
+<p><strong>4. 访问量统计</strong></p>
+<p>一开始用不蒜子做访客数和浏览量，后来觉得没必要，自己的小站不需要靠数字撑场面，就把三项全关了。关掉之后主题模板里的那段脚本不再输出，页面反而更干净。</p>
+<h2 id="八、现在的工作流"><a href="#八、现在的工作流" class="headerlink" title="八、现在的工作流"></a>八、现在的工作流</h2><p>日常就三件事：</p>
+<ol>
+<li><code>npx hexo new &quot;标题&quot;</code> 新建文章</li>
+<li>用编辑器打开 <code>source/_posts/标题.md</code> 写完，<code>npx hexo s</code> 本地看一眼效果</li>
+<li>双击 <code>push.bat</code>：清理、生成、部署</li>
+</ol>
+<p>1 到 2 分钟后线上就是新的了。</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>整套东西搭下来，最有价值的部分不是学会了几个命令，而是想明白了一件事：<strong>内容要攥在自己手里</strong>。</p>
+<p>Markdown 就是纯文本，扔进任何一个编辑器都能读；仓库是自己的，域名是自己的，换个平台、换个静态生成器，文章一个字都不用改。</p>
+<p><strong>技术会过时，但这个原则不会</strong>。</p>
+]]></content>
+      <categories>
+        <category>技术笔记</category>
+      </categories>
+      <tags>
+        <tag>Github</tag>
+        <tag>Hexo</tag>
+        <tag>Butterfly</tag>
+        <tag>Cloudflare</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家</title>
+    <url>/2026/11/05/DeepSeekHarness%E8%A3%85%E8%BF%9B%E5%AE%89%E5%8D%93%E6%89%8B%E6%9C%BA/</url>
+    <content><![CDATA[<h2 id="前言：为什么是-Linux-与-Android？"><a href="#前言：为什么是-Linux-与-Android？" class="headerlink" title="前言：为什么是 Linux 与 Android？"></a>前言：为什么是 Linux 与 Android？</h2><p>在当前的 AI Agent 演进中，Agent 对系统权限和命令行环境的操控能力至关重要。相比于 Windows，<strong>Linux 环境凭借更加纯粹的终端控制、模块化的命令行工具以及原生 Shell 交互，使 Agent 能够执行更复杂、更精细的操作</strong>。</p>
+<p>而我们日常使用的 <strong>Android 系统正是基于 Linux 内核构建的</strong>。这一特性让我们萌生了一个大胆的设想：<strong>能否将大模型 Agent 直接部署运行在安卓本地，使其通过终端与系统 API 结合，成为一个真正具备系统接管能力、更加“人性化”的移动端智能管家？</strong></p>
+<hr>
+<h2 id="一、技术方案选型：DeepSeek-Harness-DSH"><a href="#一、技术方案选型：DeepSeek-Harness-DSH" class="headerlink" title="一、技术方案选型：DeepSeek Harness (DSH)"></a>一、技术方案选型：DeepSeek Harness (DSH)</h2><p>在探索开源 Agent 方案时，DeepSeek 开源的 <strong>DSH (DeepSeek Harness)</strong> 展现出了出色的能力。它不仅在任务拆解、系统命令行调用上具有极高的准确度，而且具备良好的可扩展性。</p>
+<p>不过，DSH 官方主要针对 PC&#x2F;服务器环境设计，默认提供了远程连接至电脑端的控制功能。为了在移动端实现本地化自治运行，我们需要寻找在 Android 内部提供完整 Linux 执行环境的载体——<strong>Termux</strong> 便是最佳选择。</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">+-----------------------------------------------------------+</span><br><span class="line">|                     Android 操作系统                      |</span><br><span class="line">|                                                           |</span><br><span class="line">|  +-----------------------------------------------------+  |</span><br><span class="line">|  |                    Termux / DSHA                    |  |</span><br><span class="line">|  |  +-----------------------------------------------+  |  |</span><br><span class="line">|  |  |         Linux 运行环境 (chroot/proot)         |  |  |</span><br><span class="line">|  |  |  +-----------------------------------------+  |  |  |</span><br><span class="line">|  |  |  |   DeepSeek Harness (DSH) Agent Engine   |  |  |  |</span><br><span class="line">|  |  |  +--------------------|--------------------+  |  |  |</span><br><span class="line">|  |  +-----------------------|-----------------------+  |  |</span><br><span class="line">|  |                          v                          |  |</span><br><span class="line">|  |              Termux:API / 移动端插件库              |  |</span><br><span class="line">|  +--------------------------|--------------------------+  |</span><br><span class="line">|                             v                             |</span><br><span class="line">|                    调用系统硬件与能力                     |</span><br><span class="line">|           (短信/通知/文件系统/剪贴板/传感器...)           |</span><br><span class="line">+-----------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、深度折腾：底层实现原理剖析"><a href="#二、深度折腾：底层实现原理剖析" class="headerlink" title="二、深度折腾：底层实现原理剖析"></a>二、深度折腾：底层实现原理剖析</h2><p>要理解 Agent 如何在手机内部跑起来，可以通过以下三个核心步骤来拆解其架构与原理：</p>
+<h3 id="（一）在-Termux-中搭建环境"><a href="#（一）在-Termux-中搭建环境" class="headerlink" title="（一）在 Termux 中搭建环境"></a>（一）在 Termux 中搭建环境</h3><ol>
+<li><strong>安装 Termux</strong>：在 Android 设备上建立标准的 Linux 用户态空间。</li>
+<li><strong>拉取部署 DSH</strong>：配置 Python&#x2F;Node.js 等依赖环境，克隆并部署 DeepSeek Harness 源码。</li>
+</ol>
+<h3 id="（二）工具注册与能力封装（关键步骤）"><a href="#（二）工具注册与能力封装（关键步骤）" class="headerlink" title="（二）工具注册与能力封装（关键步骤）"></a>（二）工具注册与能力封装（关键步骤）</h3><p>单纯的 Linux 终端无法直接操作系统原生的电话、短信或传感器。我们需要借助 <strong>Termux:API</strong>：</p>
+<ul>
+<li><strong>能力暴露</strong>：将 Termux:API 提供的 CLI 命令（如 <code>termux-sms-send</code>、<code>termux-battery-status</code>、<code>termux-telephony-deviceinfo</code> 等）封装为标准工具接口（Tools）。</li>
+<li><strong>Agent 注册</strong>：在 DSH 中注册这些工具。当用户发出指令（如“给张三发一条短信”）时，DSH 能够识别并自主生成调用 Termux:API 的 Shell 命令。</li>
+</ul>
+<h3 id="（三）简易替代方案：开箱即用的第三方封装（DSHA）"><a href="#（三）简易替代方案：开箱即用的第三方封装（DSHA）" class="headerlink" title="（三）简易替代方案：开箱即用的第三方封装（DSHA）"></a>（三）简易替代方案：开箱即用的第三方封装（DSHA）</h3><p>理解原理有助于排查问题，但对于日常使用，“折腾的目的最终是为了方便”。</p>
+<p>如果你不想从零开始手动配置依赖和环境变量，可以选用开源的三方集成软件（例如 <strong>DSHA</strong>）：</p>
+<ul>
+<li><strong>一键配置</strong>：内部自动集成打包好的 Linux 环境与 DSH 核心引擎。</li>
+<li><strong>图形界面 (GUI)</strong>：提供可视化的交互面板与 GUI 界面，省去了在纯 CLI 终端下操作的门槛。</li>
+<li><strong>安全与隐私提示</strong>：使用任何第三方打包应用时，请务必仔细甄别项目的开源透明度及代码安全性，切勿在未明确来源的软件中输入敏感 API Key。</li>
+</ul>
+<hr>
+<h2 id="三、插件拓展与-API-Token-优化"><a href="#三、插件拓展与-API-Token-优化" class="headerlink" title="三、插件拓展与 API Token 优化"></a>三、插件拓展与 API Token 优化</h2><h3 id="（一）移动端专属插件"><a href="#（一）移动端专属插件" class="headerlink" title="（一）移动端专属插件"></a>（一）移动端专属插件</h3><p>要让 Agent 适应移动端场景，需要为其安装适配移动设备的 DSH 插件（如应用启动、通知栏读取、快捷指令调用等）。你也可以利用大模型的能力，根据 Termux:API 的文档提示，让大模型自行写出适配新场景的 Tool 插件。</p>
+<h3 id="（二）降低-Token-消耗成本"><a href="#（二）降低-Token-消耗成本" class="headerlink" title="（二）降低 Token 消耗成本"></a>（二）降低 Token 消耗成本</h3><p>Agent 在进行复杂任务思考与工具调用（Function Calling）时会消耗大量的 API Token。</p>
+<ul>
+<li><strong>中转&#x2F;反代方案</strong>：可以考虑配置 API 反向代理或聚合平台服务，利用其他大模型额度、优惠套餐或自建中转站进行资源调度，从而显著降低长期使用的 API 开销。</li>
+<li><em>注：关于反代服务的搭建与接入，市场上已有丰富教程，本文不专门展开，有兴趣的朋友可自行了解。</em></li>
+</ul>
+<hr>
+<h2 id="四、进阶探索：ROOT-权限与黑科技（极客选读）"><a href="#四、进阶探索：ROOT-权限与黑科技（极客选读）" class="headerlink" title="四、进阶探索：ROOT 权限与黑科技（极客选读）"></a>四、进阶探索：ROOT 权限与黑科技（极客选读）</h2><p>对于追求极致操控体验的极客玩家，当手机获取 <strong>ROOT 权限</strong>（如通过 Magisk 或 KernelSU）后，Agent 的能力边界将被成倍放大：</p>
+<ul>
+<li><strong>深度接管</strong>：授权给 Agent 底层 Root 权限及特定插件后，它不仅能调用基础 API，还能直接读取&#x2F;修改系统 <code>/data</code> 目录、跨应用自动执行后台任务、接管 Touch UI 模拟人手点击等。</li>
+<li><strong>自动化魔改</strong>：配合 Shell 脚本，Agent 可以成为真正意义上的“手机系统级机器人”。</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>高能安全警告</strong>：</p>
+<ol>
+<li><strong>Root 存在较高风险</strong>：可能导致手机变砖、数据丢失、保修失效，或引发严重的隐私泄露与安全隐患。</li>
+<li><strong>切勿使用主力机尝试</strong>：在没有扎实技术基础的情况下，请严格避免在日常主力设备上开启 Root 权限。</li>
+<li>本文仅作技术思路探讨，相关教程请自行查找，若因操作不当引发任何设备或数据问题，概不负责。</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><p>结合 Linux 的命令响应力与 Android 的硬件普及度，将 DeepSeek Harness 接入移动端为我们展示了本地 Agent 的无限可能。从 Termux:API 的底层能力映射，到一键化工具的便捷接入，移动端 AI 管家正逐步从概念走向现实。希望这个方案能为你提供一点启发，欢迎大家动手实践与交流！</p>
+]]></content>
+      <categories>
+        <category>技术笔记</category>
+      </categories>
+      <tags>
+        <tag>Termux</tag>
+        <tag>Android</tag>
+        <tag>DSH</tag>
+        <tag>Agent</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Obsidian 笔记：建立属于自己的知识库</title>
+    <url>/2026/10/26/Obsidian%E7%AC%94%E8%AE%B0-%E5%BB%BA%E7%AB%8B%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BA%93/</url>
+    <content><![CDATA[<p>最近了解到 Obsidian（以下简称 OB）这款软件，发现它非常适合配合 AI 搭建个人知识库。之前我一直用系统自带的笔记本写笔记，但用久了觉得功能太单一，缺乏结构化的知识管理能力，于是决定尝试一下这个新工具。</p>
+<h2 id="一、Obsidian-基础使用：为什么它是知识库神器？"><a href="#一、Obsidian-基础使用：为什么它是知识库神器？" class="headerlink" title="一、Obsidian 基础使用：为什么它是知识库神器？"></a>一、Obsidian 基础使用：为什么它是知识库神器？</h2><p>刚上手 Obsidian，我就被它的几个核心功能惊艳到了：</p>
+<ul>
+<li><strong>本地 Markdown 笔记</strong>：所有笔记都是本地的 <code>.md</code> 文件，不依赖任何云端数据库，数据完全掌握在自己手里。而且 Markdown 格式非常适合普通大模型问答，也极度契合 Agent 自动读写文件的需求。</li>
+<li><strong>双向链接</strong>：这是 Obsidian 的灵魂。通过 <code>[[笔记名]]</code> 就能在笔记之间建立链接，点击即可跳转。随着笔记越来越多，这些链接会自动形成一张「知识关系图谱」，让零散的知识点产生化学反应。</li>
+<li><strong>标签（Tags）</strong>：使用 <code>#标签名</code> 可以快速对笔记进行分类和检索，配合双链使用，管理效率翻倍。</li>
+<li><strong>Canvas 画布</strong>：这是一个无限大的白板，可以把笔记、图片、网页链接随意拖拽、连线，非常适合做头脑风暴或梳理复杂的项目逻辑。</li>
+</ul>
+<p>这些特性让 Obsidian 不仅仅是一个笔记软件，更是一个能伴随你成长的「第二大脑」。</p>
+<h2 id="二、Obsidian-的云同步"><a href="#二、Obsidian-的云同步" class="headerlink" title="二、Obsidian 的云同步"></a>二、Obsidian 的云同步</h2><p>Obsidian 的「本地优先」哲学是它的魅力，但同时也带来了一定弊端：它没有免费的官方同步服务。官方提供的 Obsidian Sync 每月需要 5 美元，对于国内用户来说不仅价格偏高，还面临海外服务器延迟的问题。</p>
+<p>在网上搜了一圈，最火的免费方案就是 Remotely Save 插件 + 坚果云 WebDAV。</p>
+<ol>
+<li>登录坚果云网页端，在「账户安全」里生成了一个第三方应用密码。</li>
+<li>在 Obsidian 安装 Remotely Save 插件，填入坚果云的 WebDAV 地址、邮箱和应用密码。</li>
+<li>点击「检查连接」，提示成功，开始同步。</li>
+</ol>
+<p>但是，在实际使用中坚果云频繁报 503 错误，甚至直接限流。后来了解到，坚果云对 WebDAV 的 API 请求频率有严格限制，并不适合做高频的云同步首选。</p>
+<p>在 WebDAV 方案受挫后，我想到了以前建立博客时用到的 Git 上传方案。经过一番研究与查阅资料，发现它完全可行。</p>
+<p>它有两个入口：电脑端用 Obsidian 的 Git 插件，手机端用 Termux（见下一节），两边<strong>共用同一个 GitHub 仓库</strong>。</p>
+<h3 id="1-安装插件"><a href="#1-安装插件" class="headerlink" title="1. 安装插件"></a>1. 安装插件</h3><p>在 Obsidian 的第三方插件市场中搜索并安装 Obsidian Git 插件，然后启用。</p>
+<h3 id="2-插件配置"><a href="#2-插件配置" class="headerlink" title="2. 插件配置"></a>2. 插件配置</h3><p>打开插件设置页面，我逐项检查了一遍，最终决定所有参数保持默认不动。事实证明，默认配置已经足够好用，过度自定义反而容易引发各种奇怪的问题。</p>
+<h3 id="3-电脑端一键同步"><a href="#3-电脑端一键同步" class="headerlink" title="3. 电脑端一键同步"></a>3. 电脑端一键同步</h3><p>按 <code>Ctrl+P</code> 调出命令面板，输入 <code>Obsidian Git: Commit and sync</code>，回车即可一键完成本地提交并推送到 GitHub 远程仓库。</p>
+<h2 id="三、手机端操纵方法"><a href="#三、手机端操纵方法" class="headerlink" title="三、手机端操纵方法"></a>三、手机端操纵方法</h2><p>Android 上的 Obsidian <strong>没有现成的 Git 插件可用</strong>，得借 Termux 这个终端环境来操作。好处是脚本化之后，一次点击和插件没什么区别。</p>
+<h3 id="1-前期准备"><a href="#1-前期准备" class="headerlink" title="1. 前期准备"></a>1. 前期准备</h3><ul>
+<li>手机安装 Termux（建议从 F-Droid 装，Play 商店上的版本已经停止更新）</li>
+<li>GitHub 上新建一个仓库专门存放 Obsidian 笔记库</li>
+<li>本地电脑已经配置好 SSH 密钥；手机 Termux 同样配置一份，实现免密码推送到 GitHub</li>
+<li>仓库设为私有，笔记里难免有私人内容，公开等于摊开给人看</li>
+</ul>
+<h3 id="2-给-Termux-存储权限"><a href="#2-给-Termux-存储权限" class="headerlink" title="2. 给 Termux 存储权限"></a>2. 给 Termux 存储权限</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">termux-setup-storage</span><br></pre></td></tr></table></figure>
+
+<p>弹出的权限框要允许，否则后面访问不到手机的公共存储目录。</p>
+<h3 id="3-把仓库克隆到手机"><a href="#3-把仓库克隆到手机" class="headerlink" title="3. 把仓库克隆到手机"></a>3. 把仓库克隆到手机</h3><p>Termux 自己的家目录（<code>~</code>）是私有的，Obsidian 读不到，所以仓库要落在手机的公共存储区。加上前面已经配好 SSH，直接克隆即可：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /storage/emulated/0</span><br><span class="line">git <span class="built_in">clone</span> git@github.com:你的用户名/Note.git</span><br></pre></td></tr></table></figure>
+
+<p>克隆出来的 <code>/storage/emulated/0/Note</code> 就是 Obsidian 能直接识别读取的库目录。</p>
+<h3 id="4-配置-Git"><a href="#4-配置-Git" class="headerlink" title="4. 配置 Git"></a>4. 配置 Git</h3><p>新版 Git 会检查仓库目录的 owner，而公共存储区里的目录 owner 和当前用户对不上，于是报 <code>detected dubious ownership in repository</code>。这一步不做，之后每条 git 命令都会被直接拒绝：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git config --global --add safe.directory /storage/emulated/0/Note</span><br></pre></td></tr></table></figure>
+
+<p>顺手把提交身份也设好，不然后面的 commit 会带上一个莫名其妙的名字：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git config --global user.name <span class="string">&quot;你的 GitHub 用户名&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;你 GitHub 绑定的邮箱&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-过滤设备配置文件"><a href="#5-过滤设备配置文件" class="headerlink" title="5. 过滤设备配置文件"></a>5. 过滤设备配置文件</h3><p><code>.obsidian/</code> 里存的是工作区布局、缓存这类跟设备强相关的东西，同步过去只会在两边互相打架。在仓库根目录的 <code>.gitignore</code> 里写入：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">/.obsidian/</span><br><span class="line">.obsidian/</span><br><span class="line">trash/</span><br><span class="line">.DS_Store</span><br><span class="line">Thumbs.db</span><br><span class="line">desktop.ini</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果连插件配置也想跟着走，可以改成只忽略 <code>.obsidian/workspace.json</code>，插件本体和设置仍然留在版本控制里。</p>
+</blockquote>
+<h3 id="6-手动同步流程"><a href="#6-手动同步流程" class="headerlink" title="6. 手动同步流程"></a>6. 手动同步流程</h3><p>先把顺序记住，脚本其实就是它的封装：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /storage/emulated/0/Note</span><br><span class="line">git pull</span><br><span class="line">git add .</span><br><span class="line">git commit -m <span class="string">&quot;更新笔记&quot;</span></span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-一键同步脚本"><a href="#7-一键同步脚本" class="headerlink" title="7. 一键同步脚本"></a>7. 一键同步脚本</h3><p>新建脚本文件：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nano sync_note.sh</span><br></pre></td></tr></table></figure>
+
+<p>填入下面的内容：</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/data/data/com.termux/files/usr/bin/sh</span></span><br><span class="line"><span class="built_in">cd</span> /storage/emulated/0/Note || <span class="built_in">exit</span> 1</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;===== 提交本地改动 =====&quot;</span></span><br><span class="line">git add .</span><br><span class="line"><span class="keyword">if</span> ! git diff --cached --quiet; <span class="keyword">then</span></span><br><span class="line">  git commit -m <span class="string">&quot;手机端同步 <span class="subst">$(date &#x27;+%Y-%m-%d %H:%M&#x27;)</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;本地没有新改动，跳过提交&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;===== 拉取远程最新笔记 =====&quot;</span></span><br><span class="line">git pull --rebase</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;===== 推送到 GitHub =====&quot;</span></span><br><span class="line">git push</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;同步完成&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>保存退出后，给脚本加上运行权限：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x sync_note.sh</span><br></pre></td></tr></table></figure>
+
+<p>之后日常一键同步只需要执行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./sync_note.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-同步规则与避坑"><a href="#8-同步规则与避坑" class="headerlink" title="8. 同步规则与避坑"></a>8. 同步规则与避坑</h3><ol>
+<li><strong>开写之前先拉一次</strong>。手机和电脑轮流用的时候，先同步再动手，能最大程度避免冲突。</li>
+<li><strong>两边别同时改同一个文件</strong>。这是最容易撞上 Git 冲突的场景，一旦发生就得手工处理 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> 标记。</li>
+<li><strong>仓库记得设为私有</strong>。笔记里难免有私人内容，公开仓库等于摊开给人看。</li>
+<li><strong>脚本里先提交再拉取</strong>。原始写法是先 <code>pull</code> 再 <code>commit</code>，本地还有未提交改动时 pull 会直接报错；现在先把本地改动落成一个 commit，再 <code>pull --rebase</code> 把远程新提交垫在下面，冲突面小得多。</li>
+</ol>
+<p>经过反复测验，该方案不仅同步稳定，而且完美避开了 WebDAV 的限流痛点，目前已成为我日常使用的主力同步方式。</p>
+<h2 id="四、个人总结：工具为辅，记录为主"><a href="#四、个人总结：工具为辅，记录为主" class="headerlink" title="四、个人总结：工具为辅，记录为主"></a>四、个人总结：工具为辅，记录为主</h2><p>折腾了一圈同步方案，我最大的感触是：Obsidian 和 Git 终究只是辅助工具，真正重要的永远是日常的记录与思考。</p>
+<p>我们很容易陷入「折腾工具」的陷阱：为了找一个完美的同步插件耗费半天，为了美化界面安装几十个主题，或者为了构建一个看似完美的知识图谱而焦虑。但工具再强大，如果里面没有扎实的内容，也只是一个空壳。把省下来的时间用来多写几篇笔记、多记录一些日常的灵感与反思，才是建立个人知识库的真正意义。</p>
+<p>毕竟，笔记的价值不在于它存放在哪里、用什么软件打开，而在于那些文字是否真正沉淀成了你自己的认知。</p>
+]]></content>
+      <categories>
+        <category>技术笔记</category>
+      </categories>
+      <tags>
+        <tag>Termux</tag>
+        <tag>Obsidian</tag>
+        <tag>Git</tag>
+        <tag>WebDAV</tag>
+        <tag>坚果云</tag>
+      </tags>
+  </entry>
+</search>

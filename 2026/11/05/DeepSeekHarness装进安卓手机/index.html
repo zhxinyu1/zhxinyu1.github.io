@@ -1,0 +1,308 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家 | 宇的博客</title><meta name="author" content="zhxinyu1"><meta name="copyright" content="zhxinyu1"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在 Termux 里搭出完整 Linux 环境运行 DSH，通过 Termux:API 把短信、通知、剪贴板、传感器封装成工具交给 Agent，附插件扩展、Token 优化与 ROOT 进阶的思路。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家">
+<meta property="og:url" content="https://zhxinyu1.github.io/2026/11/05/DeepSeekHarness%E8%A3%85%E8%BF%9B%E5%AE%89%E5%8D%93%E6%89%8B%E6%9C%BA/index.html">
+<meta property="og:site_name" content="宇的博客">
+<meta property="og:description" content="在 Termux 里搭出完整 Linux 环境运行 DSH，通过 Termux:API 把短信、通知、剪贴板、传感器封装成工具交给 Agent，附插件扩展、Token 优化与 ROOT 进阶的思路。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhxinyu1.github.io/img/cover/dsh-android.jpg">
+<meta property="article:published_time" content="2026-11-05T10:30:00.000Z">
+<meta property="article:modified_time" content="2026-11-05T10:30:00.000Z">
+<meta property="article:author" content="zhxinyu1">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="DSH">
+<meta property="article:tag" content="Termux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zhxinyu1.github.io/img/cover/dsh-android.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家",
+  "url": "https://zhxinyu1.github.io/2026/11/05/DeepSeekHarness%E8%A3%85%E8%BF%9B%E5%AE%89%E5%8D%93%E6%89%8B%E6%9C%BA/",
+  "image": "https://zhxinyu1.github.io/img/cover/dsh-android.jpg",
+  "datePublished": "2026-11-05T10:30:00.000Z",
+  "dateModified": "2026-11-05T10:30:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "zhxinyu1",
+      "url": "https://zhxinyu1.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://zhxinyu1.github.io/2026/11/05/DeepSeekHarness%E8%A3%85%E8%BF%9B%E5%AE%89%E5%8D%93%E6%89%8B%E6%9C%BA/index.html"><link rel="preconnect" href="https://registry.npmmirror.com"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://registry.npmmirror.com/@fortawesome/fontawesome-free/7.3.1/files/css/all.min.css"><link rel="stylesheet" href="https://registry.npmmirror.com/@fancyapps/ui/6.1.14/files/dist/fancybox/fancybox.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const start = 6
+              const end = 18
+              const isNight =
+                start < end
+                    ? hour < start || hour >= end
+                    : hour >= start || hour < end
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: zhxinyu1","link":"链接: ","source":"来源: 宇的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://registry.npmmirror.com/@egjs/infinitegrid/4.13.0/files/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      if ($loadingBox.classList.contains('loaded')) return
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+
+  if (document.readyState === 'complete') {
+    preloader.endLoading()
+  } else {
+    window.addEventListener('load', preloader.endLoading)
+    document.addEventListener('DOMContentLoaded', preloader.endLoading)
+    // Add timeout protection: force end after 7 seconds
+    setTimeout(preloader.endLoading, 7000)
+  }
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/logo.png" alt="Logo"><span class="site-name">宇的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-05T10:30:00.000Z" title="发表于 2026-11-05 18:30:00">2026-11-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-05T10:30:00.000Z" title="更新于 2026-11-05 18:30:00">2026-11-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/">技术笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span></div></div></div><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;距上次更新已经过了&quot;,&quot;messageNext&quot;:&quot;天，文章内容可能已经过时。&quot;,&quot;postUpdate&quot;:&quot;2026-11-05 18:30:00&quot;}" hidden></div><h2 id="前言：为什么是-Linux-与-Android？"><a href="#前言：为什么是-Linux-与-Android？" class="headerlink" title="前言：为什么是 Linux 与 Android？"></a>前言：为什么是 Linux 与 Android？</h2><p>在当前的 AI Agent 演进中，Agent 对系统权限和命令行环境的操控能力至关重要。相比于 Windows，<strong>Linux 环境凭借更加纯粹的终端控制、模块化的命令行工具以及原生 Shell 交互，使 Agent 能够执行更复杂、更精细的操作</strong>。</p>
+<p>而我们日常使用的 <strong>Android 系统正是基于 Linux 内核构建的</strong>。这一特性让我们萌生了一个大胆的设想：<strong>能否将大模型 Agent 直接部署运行在安卓本地，使其通过终端与系统 API 结合，成为一个真正具备系统接管能力、更加“人性化”的移动端智能管家？</strong></p>
+<hr>
+<h2 id="一、技术方案选型：DeepSeek-Harness-DSH"><a href="#一、技术方案选型：DeepSeek-Harness-DSH" class="headerlink" title="一、技术方案选型：DeepSeek Harness (DSH)"></a>一、技术方案选型：DeepSeek Harness (DSH)</h2><p>在探索开源 Agent 方案时，DeepSeek 开源的 <strong>DSH (DeepSeek Harness)</strong> 展现出了出色的能力。它不仅在任务拆解、系统命令行调用上具有极高的准确度，而且具备良好的可扩展性。</p>
+<p>不过，DSH 官方主要针对 PC&#x2F;服务器环境设计，默认提供了远程连接至电脑端的控制功能。为了在移动端实现本地化自治运行，我们需要寻找在 Android 内部提供完整 Linux 执行环境的载体——<strong>Termux</strong> 便是最佳选择。</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">+-----------------------------------------------------------+</span><br><span class="line">|                     Android 操作系统                      |</span><br><span class="line">|                                                           |</span><br><span class="line">|  +-----------------------------------------------------+  |</span><br><span class="line">|  |                    Termux / DSHA                    |  |</span><br><span class="line">|  |  +-----------------------------------------------+  |  |</span><br><span class="line">|  |  |         Linux 运行环境 (chroot/proot)         |  |  |</span><br><span class="line">|  |  |  +-----------------------------------------+  |  |  |</span><br><span class="line">|  |  |  |   DeepSeek Harness (DSH) Agent Engine   |  |  |  |</span><br><span class="line">|  |  |  +--------------------|--------------------+  |  |  |</span><br><span class="line">|  |  +-----------------------|-----------------------+  |  |</span><br><span class="line">|  |                          v                          |  |</span><br><span class="line">|  |              Termux:API / 移动端插件库              |  |</span><br><span class="line">|  +--------------------------|--------------------------+  |</span><br><span class="line">|                             v                             |</span><br><span class="line">|                    调用系统硬件与能力                     |</span><br><span class="line">|           (短信/通知/文件系统/剪贴板/传感器...)           |</span><br><span class="line">+-----------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、深度折腾：底层实现原理剖析"><a href="#二、深度折腾：底层实现原理剖析" class="headerlink" title="二、深度折腾：底层实现原理剖析"></a>二、深度折腾：底层实现原理剖析</h2><p>要理解 Agent 如何在手机内部跑起来，可以通过以下三个核心步骤来拆解其架构与原理：</p>
+<h3 id="（一）在-Termux-中搭建环境"><a href="#（一）在-Termux-中搭建环境" class="headerlink" title="（一）在 Termux 中搭建环境"></a>（一）在 Termux 中搭建环境</h3><ol>
+<li><strong>安装 Termux</strong>：在 Android 设备上建立标准的 Linux 用户态空间。</li>
+<li><strong>拉取部署 DSH</strong>：配置 Python&#x2F;Node.js 等依赖环境，克隆并部署 DeepSeek Harness 源码。</li>
+</ol>
+<h3 id="（二）工具注册与能力封装（关键步骤）"><a href="#（二）工具注册与能力封装（关键步骤）" class="headerlink" title="（二）工具注册与能力封装（关键步骤）"></a>（二）工具注册与能力封装（关键步骤）</h3><p>单纯的 Linux 终端无法直接操作系统原生的电话、短信或传感器。我们需要借助 <strong>Termux:API</strong>：</p>
+<ul>
+<li><strong>能力暴露</strong>：将 Termux:API 提供的 CLI 命令（如 <code>termux-sms-send</code>、<code>termux-battery-status</code>、<code>termux-telephony-deviceinfo</code> 等）封装为标准工具接口（Tools）。</li>
+<li><strong>Agent 注册</strong>：在 DSH 中注册这些工具。当用户发出指令（如“给张三发一条短信”）时，DSH 能够识别并自主生成调用 Termux:API 的 Shell 命令。</li>
+</ul>
+<h3 id="（三）简易替代方案：开箱即用的第三方封装（DSHA）"><a href="#（三）简易替代方案：开箱即用的第三方封装（DSHA）" class="headerlink" title="（三）简易替代方案：开箱即用的第三方封装（DSHA）"></a>（三）简易替代方案：开箱即用的第三方封装（DSHA）</h3><p>理解原理有助于排查问题，但对于日常使用，“折腾的目的最终是为了方便”。</p>
+<p>如果你不想从零开始手动配置依赖和环境变量，可以选用开源的三方集成软件（例如 <strong>DSHA</strong>）：</p>
+<ul>
+<li><strong>一键配置</strong>：内部自动集成打包好的 Linux 环境与 DSH 核心引擎。</li>
+<li><strong>图形界面 (GUI)</strong>：提供可视化的交互面板与 GUI 界面，省去了在纯 CLI 终端下操作的门槛。</li>
+<li><strong>安全与隐私提示</strong>：使用任何第三方打包应用时，请务必仔细甄别项目的开源透明度及代码安全性，切勿在未明确来源的软件中输入敏感 API Key。</li>
+</ul>
+<hr>
+<h2 id="三、插件拓展与-API-Token-优化"><a href="#三、插件拓展与-API-Token-优化" class="headerlink" title="三、插件拓展与 API Token 优化"></a>三、插件拓展与 API Token 优化</h2><h3 id="（一）移动端专属插件"><a href="#（一）移动端专属插件" class="headerlink" title="（一）移动端专属插件"></a>（一）移动端专属插件</h3><p>要让 Agent 适应移动端场景，需要为其安装适配移动设备的 DSH 插件（如应用启动、通知栏读取、快捷指令调用等）。你也可以利用大模型的能力，根据 Termux:API 的文档提示，让大模型自行写出适配新场景的 Tool 插件。</p>
+<h3 id="（二）降低-Token-消耗成本"><a href="#（二）降低-Token-消耗成本" class="headerlink" title="（二）降低 Token 消耗成本"></a>（二）降低 Token 消耗成本</h3><p>Agent 在进行复杂任务思考与工具调用（Function Calling）时会消耗大量的 API Token。</p>
+<ul>
+<li><strong>中转&#x2F;反代方案</strong>：可以考虑配置 API 反向代理或聚合平台服务，利用其他大模型额度、优惠套餐或自建中转站进行资源调度，从而显著降低长期使用的 API 开销。</li>
+<li><em>注：关于反代服务的搭建与接入，市场上已有丰富教程，本文不专门展开，有兴趣的朋友可自行了解。</em></li>
+</ul>
+<hr>
+<h2 id="四、进阶探索：ROOT-权限与黑科技（极客选读）"><a href="#四、进阶探索：ROOT-权限与黑科技（极客选读）" class="headerlink" title="四、进阶探索：ROOT 权限与黑科技（极客选读）"></a>四、进阶探索：ROOT 权限与黑科技（极客选读）</h2><p>对于追求极致操控体验的极客玩家，当手机获取 <strong>ROOT 权限</strong>（如通过 Magisk 或 KernelSU）后，Agent 的能力边界将被成倍放大：</p>
+<ul>
+<li><strong>深度接管</strong>：授权给 Agent 底层 Root 权限及特定插件后，它不仅能调用基础 API，还能直接读取&#x2F;修改系统 <code>/data</code> 目录、跨应用自动执行后台任务、接管 Touch UI 模拟人手点击等。</li>
+<li><strong>自动化魔改</strong>：配合 Shell 脚本，Agent 可以成为真正意义上的“手机系统级机器人”。</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>高能安全警告</strong>：</p>
+<ol>
+<li><strong>Root 存在较高风险</strong>：可能导致手机变砖、数据丢失、保修失效，或引发严重的隐私泄露与安全隐患。</li>
+<li><strong>切勿使用主力机尝试</strong>：在没有扎实技术基础的情况下，请严格避免在日常主力设备上开启 Root 权限。</li>
+<li>本文仅作技术思路探讨，相关教程请自行查找，若因操作不当引发任何设备或数据问题，概不负责。</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><p>结合 Linux 的命令响应力与 Android 的硬件普及度，将 DeepSeek Harness 接入移动端为我们展示了本地 Agent 的无限可能。从 Termux:API 的底层能力映射，到一键化工具的便捷接入，移动端 AI 管家正逐步从概念走向现实。希望这个方案能为你提供一点启发，欢迎大家动手实践与交流！</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://zhxinyu1.github.io">zhxinyu1</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zhxinyu1.github.io/2026/11/05/DeepSeekHarness%E8%A3%85%E8%BF%9B%E5%AE%89%E5%8D%93%E6%89%8B%E6%9C%BA/">https://zhxinyu1.github.io/2026/11/05/DeepSeekHarness%E8%A3%85%E8%BF%9B%E5%AE%89%E5%8D%93%E6%89%8B%E6%9C%BA/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://zhxinyu1.github.io" target="_blank">宇的博客</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/cover/dsh-android.jpg" data-sites="wechat,qq,weibo,facebook,x"></div><link rel="stylesheet" href="https://registry.npmmirror.com/butterfly-extsrc/1.1.6/files/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://registry.npmmirror.com/butterfly-extsrc/1.1.6/files/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/10/26/Obsidian%E7%AC%94%E8%AE%B0-%E5%BB%BA%E7%AB%8B%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BA%93/" title="Obsidian 笔记：建立属于自己的知识库"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/obsidian.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Obsidian 笔记：建立属于自己的知识库</div></div><div class="info-2"><div class="info-item-1">从双链、标签、Canvas，到 Remotely Save + 坚果云 WebDAV 的限流翻车，最后落到电脑端插件、手机端 Termux 脚本共用一套 GitHub 仓库的稳定同步方案。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/10/26/Obsidian%E7%AC%94%E8%AE%B0-%E5%BB%BA%E7%AB%8B%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BA%93/" title="Obsidian 笔记：建立属于自己的知识库"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/obsidian.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-10-26</div><div class="info-item-2">Obsidian 笔记：建立属于自己的知识库</div></div><div class="info-2"><div class="info-item-1">从双链、标签、Canvas，到 Remotely Save + 坚果云 WebDAV 的限流翻车，最后落到电脑端插件、手机端 Termux 脚本共用一套 GitHub 仓库的稳定同步方案。</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">zhxinyu1</div><div class="author-info-description">记录我的一些奇思妙想</div><div class="site-data"><a href="/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zhxinyu1"><i class="fab fa-github"></i><span>关注我</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/zhxinyu1" target="_blank" title="Github"><i class="fab fa-github" style="color: #1a73c6;"></i></a><a class="social-icon" href="/categories/" target="_blank" title="分类"><i class="fas fa-folder-open" style="color: #1a73c6;"></i></a><a class="social-icon" href="/about/" target="_blank" title="联系我"><i class="fas fa-envelope" style="color: #1a73c6;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的博客</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF-Linux-%E4%B8%8E-Android%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">前言：为什么是 Linux 与 Android？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%E9%80%89%E5%9E%8B%EF%BC%9ADeepSeek-Harness-DSH"><span class="toc-number">2.</span> <span class="toc-text">一、技术方案选型：DeepSeek Harness (DSH)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%B7%B1%E5%BA%A6%E6%8A%98%E8%85%BE%EF%BC%9A%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">二、深度折腾：底层实现原理剖析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88%E4%B8%80%EF%BC%89%E5%9C%A8-Termux-%E4%B8%AD%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83"><span class="toc-number">3.1.</span> <span class="toc-text">（一）在 Termux 中搭建环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88%E4%BA%8C%EF%BC%89%E5%B7%A5%E5%85%B7%E6%B3%A8%E5%86%8C%E4%B8%8E%E8%83%BD%E5%8A%9B%E5%B0%81%E8%A3%85%EF%BC%88%E5%85%B3%E9%94%AE%E6%AD%A5%E9%AA%A4%EF%BC%89"><span class="toc-number">3.2.</span> <span class="toc-text">（二）工具注册与能力封装（关键步骤）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88%E4%B8%89%EF%BC%89%E7%AE%80%E6%98%93%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88%EF%BC%9A%E5%BC%80%E7%AE%B1%E5%8D%B3%E7%94%A8%E7%9A%84%E7%AC%AC%E4%B8%89%E6%96%B9%E5%B0%81%E8%A3%85%EF%BC%88DSHA%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">（三）简易替代方案：开箱即用的第三方封装（DSHA）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%8F%92%E4%BB%B6%E6%8B%93%E5%B1%95%E4%B8%8E-API-Token-%E4%BC%98%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">三、插件拓展与 API Token 优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88%E4%B8%80%EF%BC%89%E7%A7%BB%E5%8A%A8%E7%AB%AF%E4%B8%93%E5%B1%9E%E6%8F%92%E4%BB%B6"><span class="toc-number">4.1.</span> <span class="toc-text">（一）移动端专属插件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%88%E4%BA%8C%EF%BC%89%E9%99%8D%E4%BD%8E-Token-%E6%B6%88%E8%80%97%E6%88%90%E6%9C%AC"><span class="toc-number">4.2.</span> <span class="toc-text">（二）降低 Token 消耗成本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%BF%9B%E9%98%B6%E6%8E%A2%E7%B4%A2%EF%BC%9AROOT-%E6%9D%83%E9%99%90%E4%B8%8E%E9%BB%91%E7%A7%91%E6%8A%80%EF%BC%88%E6%9E%81%E5%AE%A2%E9%80%89%E8%AF%BB%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">四、进阶探索：ROOT 权限与黑科技（极客选读）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">五、总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/11/05/DeepSeekHarness%E8%A3%85%E8%BF%9B%E5%AE%89%E5%8D%93%E6%89%8B%E6%9C%BA/" title="将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/dsh-android.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家"/></a><div class="content"><a class="title" href="/2026/11/05/DeepSeekHarness%E8%A3%85%E8%BF%9B%E5%AE%89%E5%8D%93%E6%89%8B%E6%9C%BA/" title="将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家">将 DeepSeek Harness 搬进安卓：打造真正的移动端超级 AI 管家</a><time datetime="2026-11-05T10:30:00.000Z" title="发表于 2026-11-05 18:30:00">2026-11-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/10/26/Obsidian%E7%AC%94%E8%AE%B0-%E5%BB%BA%E7%AB%8B%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BA%93/" title="Obsidian 笔记：建立属于自己的知识库"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/obsidian.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Obsidian 笔记：建立属于自己的知识库"/></a><div class="content"><a class="title" href="/2026/10/26/Obsidian%E7%AC%94%E8%AE%B0-%E5%BB%BA%E7%AB%8B%E5%B1%9E%E4%BA%8E%E8%87%AA%E5%B7%B1%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BA%93/" title="Obsidian 笔记：建立属于自己的知识库">Obsidian 笔记：建立属于自己的知识库</a><time datetime="2026-10-26T14:45:00.000Z" title="发表于 2026-10-26 22:45:00">2026-10-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/10/25/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/" title="我是怎么搭建这个博客的"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/cover/blogbuild.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="我是怎么搭建这个博客的"/></a><div class="content"><a class="title" href="/2026/10/25/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/" title="我是怎么搭建这个博客的">我是怎么搭建这个博客的</a><time datetime="2026-10-25T03:40:00.000Z" title="发表于 2026-10-25 11:40:00">2026-10-25</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2026 By zhxinyu1</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div><div class="footer_custom_text">用 Hexo + Butterfly 记录每一天的成长</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><script src="https://registry.npmmirror.com/@fancyapps/ui/6.1.14/files/dist/fancybox/fancybox.umd.js"></script><script src="https://registry.npmmirror.com/instant.page/5.2.0/files/instantpage.js" type="module"></script><script src="https://registry.npmmirror.com/vanilla-lazyload/19.1.3/files/dist/lazyload.iife.min.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://registry.npmmirror.com/butterfly-extsrc/1.1.6/files/dist/canvas-ribbon.min.js" size="140" alpha="0.5" zIndex="-1" mobile="false" data-click="false"></script><script id="click-heart" src="https://registry.npmmirror.com/butterfly-extsrc/1.1.6/files/dist/click-heart.min.js" async="async" mobile="false"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章…" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
